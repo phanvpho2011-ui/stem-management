@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Gold STEM Academy - Hệ thống quản lý lớp STEM Thầy Phố</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Thư viện Firebase v9 Compat -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <style>
+        @keyframes popAndSpin {
+            0% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.3) rotate(180deg); }
+            100% { transform: scale(1) rotate(360deg); }
+        }
+        .animate-pop {
+            animation: popAndSpin 0.35s ease-in-out;
+        }
+        .custom-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 min-h-screen text-slate-800">
+    <header class="bg-slate-900 border-b-4 border-amber-400 text-white shadow-xl relative overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center gap-6 relative z-10">
+            <div class="flex items-center gap-4 text-center md:text-left">
+                <div class="w-20 h-20 bg-amber-400 text-slate-900 rounded-2xl p-1 shadow-lg flex items-center justify-center shrink-0 border-2 border-amber-300">
+                    <i class="fa-solid fa-robot text-4xl"></i>
+                </div>
+                <div>
+                    <h1 id="uiCenterName" class="text-2xl md:text-3xl font-black tracking-wide text-amber-400 uppercase">The Gold STEM Academy</h1>
+                    <p id="uiSlogan" class="text-xs md:text-sm font-semibold text-amber-200/90 mt-1 italic">✨ "Khai phá tiềm năng - Sáng tạo tương lai" ✨</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 flex-wrap justify-center">
+                <div id="adminBadge" class="hidden px-3 py-1.5 bg-amber-400 text-slate-900 font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-md">
+                    <i class="fa-solid fa-shield-halved"></i> Đang ở quyền Admin
+                </div>
+                <button type="button" onclick="openLoginModal()" id="loginAdminBtn" class="bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold px-4 py-2.5 rounded-xl shadow-lg transition-all flex items-center gap-2 text-sm cursor-pointer">
+                    <i class="fa-solid fa-user-lock"></i> Quản trị Admin
+                </button>
+                <button type="button" onclick="logoutAdmin()" id="logoutAdminBtn" class="hidden bg-rose-500 hover:bg-rose-600 text-white font-bold px-4 py-2.5 rounded-xl shadow-lg transition-all flex items-center gap-2 text-sm cursor-pointer">
+                    <i class="fa-solid fa-right-from-bracket"></i> Thoát Admin
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-8 space-y-10">
+        <section class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-amber-200/60 relative overflow-hidden">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <span class="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-full uppercase">Chương trình đào tạo</span>
+                    <h2 class="text-2xl md:text-3xl font-black text-slate-900 mt-2">KHÓA HỌC STEM CÔNG NGHỆ</h2>
+                    <p id="uiSubtitle" class="text-sm text-slate-600 mt-1">Vẽ 3D TinkerCad - Lập trình - Robot - Canva | Học sáng tạo, làm thực tế, hiểu bản chất!</p>
+                </div>
+                <button type="button" id="editInfoBtn" onclick="openEditInfoModal()" class="hidden bg-slate-900 hover:bg-slate-800 text-amber-300 font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-md cursor-pointer">
+                    <i class="fa-solid fa-pen-to-square"></i> Sửa thông tin chung
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+                <div class="bg-gradient-to-b from-orange-50 to-white p-5 rounded-2xl border border-orange-200 text-center shadow-sm">
+                    <div class="w-12 h-12 bg-orange-500 text-white rounded-xl flex items-center justify-center text-xl font-bold mx-auto mb-3"><i class="fa-solid fa-cubes"></i></div>
+                    <h3 class="font-bold text-slate-900 text-base mb-1">STEM</h3>
+                    <p class="text-xs text-slate-600">Vẽ 3D TinkerCad, sáng tạo mô hình thực tế không giới hạn.</p>
+                </div>
+                <div class="bg-gradient-to-b from-sky-50 to-white p-5 rounded-2xl border border-sky-200 text-center shadow-sm">
+                    <div class="w-12 h-12 bg-sky-500 text-white rounded-xl mx-auto flex items-center justify-center text-xl font-bold mb-3"><i class="fa-solid fa-laptop-code"></i></div>
+                    <h3 class="font-bold text-slate-900 text-base mb-1">TIN HỌC</h3>
+                    <p class="text-xs text-slate-600">Sử dụng máy tính thành thạo, an toàn internet và kỹ năng văn phòng.</p>
+                </div>
+                <div class="bg-gradient-to-b from-emerald-50 to-white p-5 rounded-2xl border border-emerald-200 text-center shadow-sm">
+                    <div class="w-12 h-12 bg-emerald-500 text-white rounded-xl mx-auto flex items-center justify-center text-xl font-bold mb-3"><i class="fa-solid fa-code"></i></div>
+                    <h3 class="font-bold text-slate-900 text-base mb-1">LẬP TRÌNH</h3>
+                    <p class="text-xs text-slate-600">Làm game, ứng dụng tư duy logic qua Scratch, Python, C++.</p>
+                </div>
+                <div class="bg-gradient-to-b from-purple-50 to-white p-5 rounded-2xl border border-purple-200 text-center shadow-sm">
+                    <div class="w-12 h-12 bg-purple-500 text-white rounded-xl mx-auto flex items-center justify-center text-xl font-bold mb-3"><i class="fa-solid fa-robot"></i></div>
+                    <h3 class="font-bold text-slate-900 text-base mb-1">ROBOT</h3>
+                    <p class="text-xs text-slate-600">Lắp ráp phần cứng, lập trình điều khiển robot thông minh.</p>
+                </div>
+                <div class="bg-gradient-to-b from-rose-50 to-white p-5 rounded-2xl border border-rose-200 text-center shadow-sm">
+                    <div class="w-12 h-12 bg-rose-500 text-white rounded-xl mx-auto flex items-center justify-center text-xl font-bold mb-3"><i class="fa-solid fa-palette"></i></div>
+                    <h3 class="font-bold text-slate-900 text-base mb-1">CANVA</h3>
+                    <p class="text-xs text-slate-600">Thiết kế sáng tạo poster, slide thuyết trình và video hoạt hình.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-amber-50/60 p-6 rounded-2xl border border-amber-200">
+                <div class="space-y-2">
+                    <h4 class="font-bold text-slate-900 flex items-center gap-2 text-base"><i class="fa-solid fa-calendar-days text-amber-600"></i> Lịch Học & Khai Giảng</h4>
+                    <p id="uiScheduleMain" class="text-xs text-slate-700">🗓️ <b>Lịch chính:</b> Chiều Thứ 7 & Chiều Chủ Nhật (14h - 16h)</p>
+                    <p id="uiScheduleSub" class="text-xs text-slate-700">🔄 <b>Lịch kẹt bù:</b> Sáng Chủ Nhật (8h - 10h)</p>
+                    <p class="text-xs text-slate-700 font-semibold text-amber-700">⭐ Phù hợp cho học sinh Tiểu học & THCS.</p>
+                </div>
+                <div class="space-y-2 flex flex-col justify-between border-t md:border-t-0 md:border-l border-amber-200 pt-4 md:pt-0 md:pl-6">
+                    <div>
+                        <h4 class="font-bold text-slate-900 flex items-center gap-2 text-base"><i class="fa-solid fa-tag text-amber-600"></i> Học Phí Niêm Yết</h4>
+                        <div id="uiDisplayFee" class="text-2xl font-black text-amber-600 mt-1">500.000 đ <span class="text-xs font-normal text-slate-600">/ tháng (8 buổi)</span></div>
+                    </div>
+                    <div class="text-xs text-slate-600 font-medium">📍 <b>Địa chỉ:</b> Thầy Phố - Đồng Xoài | ☎️ <b>Zalo liên hệ:</b> 033.6724.112</div>
+                </div>
+            </div>
+        </section>
+
+        <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-amber-200/60 space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4 border-b border-slate-100 pb-6">
+                <div>
+                    <h3 class="text-2xl md:text-3xl font-black text-slate-900 flex items-center gap-3">
+                        <i class="fa-solid fa-clipboard-user text-amber-500"></i> Danh Sách Học Sinh & Điểm Danh
+                    </h3>
+                    <p class="text-sm text-slate-600 mt-1">Quản lý thông tin học sinh và bảng điểm danh 3 ca linh hoạt theo từng tháng.</p>
+                </div>
+                <button type="button" onclick="openModal()" class="bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold px-5 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-2 text-sm cursor-pointer">
+                    <i class="fa-solid fa-user-plus"></i> Đăng ký học sinh mới
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-amber-50/50 p-4 rounded-2xl border border-amber-200/60 flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-amber-400 text-slate-900 flex items-center justify-center text-xl font-bold"><i class="fa-solid fa-users"></i></div>
+                    <div>
+                        <p class="text-xs text-slate-500 font-medium uppercase">Tổng số học sinh</p>
+                        <h3 id="statTotalStudents" class="text-2xl font-bold text-slate-900">0</h3>
+                    </div>
+                </div>
+
+                <div class="bg-amber-50/50 p-4 rounded-2xl border border-amber-200/60 flex items-center justify-between gap-2">
+                    <button type="button" onclick="changeMonth(-1)" class="w-10 h-10 rounded-xl bg-white hover:bg-amber-400 font-bold shadow-sm cursor-pointer"><i class="fa-solid fa-chevron-left"></i></button>
+                    <div class="flex items-center gap-2">
+                        <input type="month" id="selectedMonth" onchange="renderTable()" class="px-3 py-2 bg-white border border-amber-200 rounded-xl text-sm font-bold shadow-sm">
+                        <button type="button" onclick="setTodayMonth()" class="px-3 py-2 bg-amber-200 hover:bg-amber-300 text-slate-900 text-xs font-bold rounded-xl shadow-sm cursor-pointer">Hiện tại</button>
+                    </div>
+                    <button type="button" onclick="changeMonth(1)" class="w-10 h-10 rounded-xl bg-white hover:bg-amber-400 font-bold shadow-sm cursor-pointer"><i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+            </div>
+
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-amber-500"><i class="fa-solid fa-magnifying-glass"></i></span>
+                <input type="text" id="searchInput" oninput="renderTable()" placeholder="Tìm kiếm theo tên học sinh, phụ huynh, SĐT, trường hoặc lớp..." class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-amber-200/60 rounded-xl text-sm shadow-inner">
+            </div>
+
+            <div class="bg-white rounded-2xl border border-amber-200/60 overflow-hidden shadow-sm">
+                <div class="overflow-x-auto custom-scroll">
+                    <table class="w-full text-left border-collapse min-w-[1000px]">
+                        <thead>
+                            <tr class="bg-slate-900 text-amber-300 border-b border-slate-800 text-xs font-bold uppercase">
+                                <th class="py-4 px-3 w-12 text-center">STT</th>
+                                <th class="py-4 px-3 w-40">Học sinh</th>
+                                <th class="py-4 px-3 w-36">Phụ huynh</th>
+                                <th class="py-4 px-3 w-32">SĐT</th>
+                                <th class="py-4 px-3 w-32">Trường / Lớp</th>
+                                <th class="py-4 px-3 text-center w-40">Điểm danh</th>
+                                <th class="py-4 px-3 text-center w-24">Tổng ca</th>
+                                <th class="py-4 px-3 w-36">Học phí tháng</th>
+                                <th id="thActionHeader" class="py-4 px-3 text-center w-28 hidden">Quản trị</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentTableBody" class="divide-y divide-amber-100 text-sm"></tbody>
+                    </table>
+                </div>
+                <div id="emptyState" class="hidden text-center py-12">
+                    <div class="text-amber-300 text-5xl mb-3"><i class="fa-solid fa-folder-open"></i></div>
+                    <p class="text-slate-500 font-medium">Chưa có học sinh nào đăng ký.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL ĐIỂM DANH -->
+    <div id="attendanceModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden border border-amber-200 flex flex-col max-h-[85vh]">
+            <div class="px-6 py-4 bg-slate-900 border-b flex justify-between items-center">
+                <div>
+                    <h3 class="font-bold text-lg text-amber-300">Bảng Điểm Danh 3 Ca Trong Tháng</h3>
+                    <p id="modalStudentInfo" class="text-xs text-amber-200/80 mt-0.5">Học sinh: Đang tải...</p>
+                </div>
+                <button type="button" onclick="closeAttendanceModal()" class="text-amber-300 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto custom-scroll space-y-4">
+                <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-slate-700 flex flex-wrap gap-4 items-center justify-center font-semibold">
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-amber-200 inline-block border border-amber-400"></span> Sáng</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-orange-300 inline-block border border-orange-500"></span> Chiều</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-indigo-300 inline-block border border-indigo-500"></span> Tối</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-emerald-500 inline-block border border-emerald-600"></span> Đã điểm danh</span>
+                </div>
+
+                <div id="attendanceDaysContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+            </div>
+
+            <div class="px-6 py-4 bg-slate-50 border-t flex justify-between items-center">
+                <span class="text-xs text-slate-500 italic">💡 Bấm trực tiếp vào từng khối ca học để tích điểm danh.</span>
+                <button type="button" onclick="closeAttendanceModal()" class="px-5 py-2 bg-slate-900 text-amber-300 font-bold rounded-xl text-sm shadow-sm cursor-pointer">Xong</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ĐĂNG NHẬP -->
+    <div id="loginModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden border border-amber-200">
+            <div class="px-6 py-4 bg-slate-900 border-b flex justify-between items-center">
+                <h3 class="font-bold text-lg text-amber-300"><i class="fa-solid fa-lock"></i> Đăng nhập Admin</h3>
+                <button type="button" onclick="closeLoginModal()" class="text-amber-300 cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="handleAdminLogin(event)" class="p-6 space-y-4">
+                <div><label class="block text-xs font-semibold mb-1">Tài khoản</label><input type="text" id="adminUser" required class="w-full px-4 py-2.5 bg-amber-50 border rounded-xl text-sm"></div>
+                <div><label class="block text-xs font-semibold mb-1">Mật khẩu</label><input type="password" id="adminPass" required class="w-full px-4 py-2.5 bg-amber-50 border rounded-xl text-sm"></div>
+                <div class="flex justify-end gap-2 pt-2"><button type="button" onclick="closeLoginModal()" class="px-4 py-2 border rounded-xl text-sm cursor-pointer">Hủy</button><button type="submit" class="px-5 py-2 bg-amber-400 font-bold rounded-xl text-sm shadow-md cursor-pointer">Đăng nhập</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL SỬA THÔNG TIN CHUNG -->
+    <div id="editInfoModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-amber-200">
+            <div class="px-6 py-4 bg-slate-900 border-b flex justify-between items-center"><h3 class="font-bold text-lg text-amber-300">Cập nhật thông tin trung tâm</h3><button type="button" onclick="closeEditInfoModal()" class="text-amber-300 cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button></div>
+            <form onsubmit="handleInfoSubmit(event)" class="p-6 space-y-4">
+                <div><label class="block text-xs font-semibold mb-1">Tên trung tâm</label><input type="text" id="inputCenterName" required class="w-full px-4 py-2.5 bg-amber-50 border rounded-xl text-sm"></div>
+                <div><label class="block text-xs font-semibold mb-1">Slogan / Khẩu hiệu</label><input type="text" id="inputSlogan" required class="w-full px-4 py-2.5 bg-amber-50 border rounded-xl text-sm"></div>
+                <div><label class="block text-xs font-semibold mb-1">Mô tả khóa học</label><input type="text" id="inputSubtitle" required class="w-full px-4 py-2.5 bg-amber-50 border rounded-xl text-sm"></div>
+                <div><label class="block text-xs font-semibold mb-1">Lịch học chính</label><input type="text" id="inputScheduleMain" required class="w-full px-4 py-2.5 bg-amber-50 border rounded-xl text-sm"></div>
+                <div><label class="block text-xs font-semibold mb-1">Lịch kẹt bù</label><input type="text" id="inputScheduleSub" required class="w-full px-4 py-2.5 bg-amber-50 border rounded-xl text-sm"></div>
+                <div class="flex justify-end gap-3 pt-4 border-t"><button type="button" onclick="closeEditInfoModal()" class="px-4 py-2 border rounded-xl text-sm cursor-pointer">Hủy</button><button type="submit" class="px-5 py-2 bg-amber-400 font-bold rounded-xl text-sm shadow-md cursor-pointer">Lưu cập nhật</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL ĐĂNG KÝ HỌC SINH -->
+    <div id="studentModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden border border-amber-200">
+            <div class="px-6 py-4 bg-slate-900 border-b flex justify-between items-center"><h3 id="modalTitle" class="font-bold text-lg text-amber-300">Đăng ký thông tin học sinh</h3><button type="button" onclick="closeModal()" class="text-amber-300 cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button></div>
+            <form id="studentForm" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4">
+                <input type="hidden" id="studentId">
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-xs font-semibold mb-1">Họ tên học sinh (*)</label><input type="text" id="studentName" required class="w-full px-4 py-2.5 bg-amber-50 border rounded-xl text-sm"></div>
+                    <div><label class="block text-xs font-semibold mb-1">Họ tên phụ huynh (*)</label><input type="text" id="parentName" required class="w-full px-4 py-2.5 bg-amber-50 border rounded-xl text-sm"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-xs font-semibold mb-1">SĐT liên hệ (*)</label><input type="text" id="studentPhone" required class="w-full px-4 py-2.5 bg-amber-50 border rounded-xl text-sm"></div>
+                    <div><label class="block text-xs font-semibold mb-1">Trường học</label><input type="text" id="studentSchool" class="w-full px-4 py-2.5 bg-amber-50 border rounded-xl text-sm"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-xs font-semibold mb-1">Lớp</label><input type="text" id="studentClass" class="w-full px-4 py-2.5 bg-amber-50 border rounded-xl text-sm"></div>
+                    <div><label class="block text-xs font-semibold mb-1">Học phí tháng (đ)</label><input type="number" id="feePerMonth" class="w-full px-4 py-2.5 bg-amber-50 border rounded-xl text-sm"></div>
+                </div>
+                <div><label class="block text-xs font-semibold mb-1">Ghi chú</label><input type="text" id="studentNote" class="w-full px-4 py-2.5 bg-amber-50 border rounded-xl text-sm"></div>
+                <div class="flex justify-end gap-3 pt-4 border-t"><button type="button" onclick="closeModal()" class="px-5 py-2.5 border rounded-xl text-sm cursor-pointer">Hủy</button><button type="submit" class="px-5 py-2.5 bg-amber-400 font-bold rounded-xl text-sm shadow-md cursor-pointer">Lưu thông tin</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL ĐỔI HỌC PHÍ -->
+    <div id="globalFeeModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden border border-amber-200">
+            <div class="px-6 py-4 bg-slate-900 border-b flex justify-between items-center"><h3 id="feeModalTitle" class="font-bold text-lg text-amber-300">Đổi học phí</h3><button type="button" onclick="closeGlobalFeeModal()" class="text-amber-300 cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button></div>
+            <div class="p-6 space-y-4">
+                <input type="hidden" id="editingStudentIdForFee" value="">
+                <div><label class="block text-xs font-semibold mb-1">Học phí mới (VNĐ/tháng)</label><input type="number" id="globalFeeInput" class="w-full px-4 py-2.5 bg-amber-50 border rounded-xl text-sm"></div>
+                <div class="flex justify-end gap-2 pt-2"><button type="button" onclick="closeGlobalFeeModal()" class="px-4 py-2 border rounded-xl text-sm cursor-pointer">Hủy</button><button type="button" onclick="submitFeeChange()" class="px-4 py-2 bg-amber-400 font-bold rounded-xl text-sm shadow-md cursor-pointer">Xác nhận</button></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Cấu hình Firebase Realtime Database
+        const firebaseConfig = {
+            apiKey: "AIzaSyAb3dc7SBckRIWNOc1_ftcwt-0A9Yp9ozM",
+            authDomain: "stem-management.firebaseapp.com",
+            databaseURL: "https://stem-management-default-rtdb.firebaseio.com",
+            projectId: "stem-management",
+            storageBucket: "stem-management.firebasestorage.app",
+            messagingSenderId: "453077903191",
+            appId: "1:453077903191:web:67d7c93f467153dfd94012",
+            measurementId: "G-YBFRGN13TP"
+        };
+
+        // Khởi tạo Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let isAdmin = localStorage.getItem('stem_admin_logged') === 'true';
+        let students = [];
+        let defaultMonthlyFee = 500000;
+        let siteInfo = {
+            centerName: "The Gold STEM Academy",
+            slogan: '✨ "Khai phá tiềm năng - Sáng tạo tương lai" ✨',
+            subtitle: "Vẽ 3D TinkerCad - Lập trình - Robot - Canva | Học sáng tạo, làm thực tế, hiểu bản chất!",
+            scheduleMain: "🗓️ <b>Lịch chính:</b> Chiều Thứ 7 & Chiều Chủ Nhật (14h - 16h)",
+            scheduleSub: "🔄 <b>Lịch kẹt bù:</b> Sáng Chủ Nhật (8h - 10h)"
+        };
+        let currentOpenStudentId = null;
+
+        // Lắng nghe dữ liệu Real-time từ Firebase
+        function loadData() {
+            db.ref('stem_data').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    students = data.students ? Object.values(data.students) : [];
+                    if (data.siteInfo) {
+                        siteInfo = { ...siteInfo, ...data.siteInfo };
+                        if (data.siteInfo.defaultMonthlyFee) defaultMonthlyFee = Number(data.siteInfo.defaultMonthlyFee);
+                    }
+                } else {
+                    students = [];
+                }
+                updateSiteInfoUI();
+                renderTable();
+                if (currentOpenStudentId) openAttendanceModal(currentOpenStudentId);
+            });
+        }
+
+        // Lưu dữ liệu lên Firebase
+        function saveData() {
+            const payload = {
+                students: students,
+                siteInfo: { ...siteInfo, defaultMonthlyFee: defaultMonthlyFee }
+            };
+            db.ref('stem_data').set(payload)
+                .catch((error) => {
+                    alert("Lỗi đồng bộ Firebase: " + error.message);
+                });
+        }
+
+        function updateSiteInfoUI() {
+            document.getElementById('uiCenterName').innerText = siteInfo.centerName;
+            document.getElementById('uiSlogan').innerText = siteInfo.slogan;
+            document.getElementById('uiSubtitle').innerText = siteInfo.subtitle;
+            document.getElementById('uiScheduleMain').innerHTML = siteInfo.scheduleMain;
+            document.getElementById('uiScheduleSub').innerHTML = siteInfo.scheduleSub;
+            document.getElementById('uiDisplayFee').innerHTML = `${formatCurrency(defaultMonthlyFee)} <span class="text-xs font-normal text-slate-600">/ tháng (8 buổi)</span>`;
+        }
+
+        function updateAdminUI() {
+            const adminBadge = document.getElementById('adminBadge');
+            const loginBtn = document.getElementById('loginAdminBtn');
+            const logoutBtn = document.getElementById('logoutAdminBtn');
+            const thActionHeader = document.getElementById('thActionHeader');
+            const editInfoBtn = document.getElementById('editInfoBtn');
+
+            if (isAdmin) {
+                adminBadge.classList.remove('hidden');
+                loginBtn.classList.add('hidden');
+                logoutBtn.classList.remove('hidden');
+                if(thActionHeader) thActionHeader.classList.remove('hidden');
+                if(editInfoBtn) editInfoBtn.classList.remove('hidden');
+            } else {
+                adminBadge.classList.add('hidden');
+                loginBtn.classList.remove('hidden');
+                logoutBtn.classList.add('hidden');
+                if(thActionHeader) thActionHeader.classList.add('hidden');
+                if(editInfoBtn) editInfoBtn.classList.add('hidden');
+            }
+            renderTable();
+        }
+
+        function openLoginModal() { document.getElementById('loginModal').classList.remove('hidden'); }
+        function closeLoginModal() { document.getElementById('loginModal').classList.add('hidden'); }
+
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('adminUser').value.trim();
+            const p = document.getElementById('adminPass').value.trim();
+            if (u.toLowerCase() === 'phanvanpho' && p === 'thaypho123') {
+                isAdmin = true;
+                localStorage.setItem('stem_admin_logged', 'true');
+                closeLoginModal();
+                updateAdminUI();
+                alert('Đăng nhập Admin thành công!');
+            } else {
+                alert('Tài khoản hoặc mật khẩu không chính xác!');
+            }
+        }
+
+        function logoutAdmin() {
+            isAdmin = false;
+            localStorage.removeItem('stem_admin_logged');
+            updateAdminUI();
+            alert('Đã thoát quyền Admin!');
+        }
+
+        function openEditInfoModal() {
+            if (!isAdmin) return;
+            document.getElementById('inputCenterName').value = siteInfo.centerName;
+            document.getElementById('inputSlogan').value = siteInfo.slogan;
+            document.getElementById('inputSubtitle').value = siteInfo.subtitle;
+            document.getElementById('inputScheduleMain').value = (siteInfo.scheduleMain || "").replace(/<[^>]*>?/gm, '');
+            document.getElementById('inputScheduleSub').value = (siteInfo.scheduleSub || "").replace(/<[^>]*>?/gm, '');
+            document.getElementById('editInfoModal').classList.remove('hidden');
+        }
+        function closeEditInfoModal() { document.getElementById('editInfoModal').classList.add('hidden'); }
+
+        function handleInfoSubmit(e) {
+            e.preventDefault();
+            siteInfo.centerName = document.getElementById('inputCenterName').value.trim();
+            siteInfo.slogan = document.getElementById('inputSlogan').value.trim();
+            siteInfo.subtitle = document.getElementById('inputSubtitle').value.trim();
+            const mainText = document.getElementById('inputScheduleMain').value.trim();
+            const subText = document.getElementById('inputScheduleSub').value.trim();
+            
+            siteInfo.scheduleMain = `🗓️ <b>Lịch chính:</b> ${mainText.replace('Lịch chính:', '').trim()}`;
+            siteInfo.scheduleSub = `🔄 <b>Lịch kẹt bù:</b> ${subText.replace('Lịch kẹt bù:', '').trim()}`;
+
+            saveData();
+            closeEditInfoModal();
+            updateSiteInfoUI();
+            alert('Cập nhật thông tin trung tâm thành công!');
+        }
+
+        const now = new Date();
+        const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        document.getElementById('selectedMonth').value = currentMonthStr;
+
+        function changeMonth(direction) {
+            const monthInput = document.getElementById('selectedMonth');
+            const [year, month] = monthInput.value.split('-').map(Number);
+            const date = new Date(year, month - 1 + direction, 1);
+            monthInput.value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            renderTable();
+        }
+
+        function setTodayMonth() {
+            const now = new Date();
+            document.getElementById('selectedMonth').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            renderTable();
+        }
+
+        function openGlobalFeeModal(studentId = null) {
+            if (!isAdmin) return;
+            const input = document.getElementById('globalFeeInput');
+            const title = document.getElementById('feeModalTitle');
+            document.getElementById('editingStudentIdForFee').value = studentId || '';
+            input.value = studentId ? (students.find(s => s.id === studentId)?.feePerMonth || defaultMonthlyFee) : defaultMonthlyFee;
+            title.innerText = studentId ? 'Đổi học phí học sinh' : 'Đổi học phí toàn bộ';
+            document.getElementById('globalFeeModal').classList.remove('hidden');
+        }
+
+        function closeGlobalFeeModal() { document.getElementById('globalFeeModal').classList.add('hidden'); }
+
+        function submitFeeChange() {
+            const newFee = Number(document.getElementById('globalFeeInput').value);
+            const studentId = document.getElementById('editingStudentIdForFee').value;
+            if (isNaN(newFee) || newFee < 0) return alert('Vui lòng nhập số tiền hợp lệ!');
+
+            if (studentId) {
+                const s = students.find(item => item.id === studentId);
+                if (s) s.feePerMonth = newFee;
+            } else {
+                defaultMonthlyFee = newFee;
+                students.forEach(s => s.feePerMonth = newFee);
+            }
+            saveData();
+            closeGlobalFeeModal();
+            renderTable();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('studentTableBody');
+            const emptyState = document.getElementById('emptyState');
+            const searchKeyword = document.getElementById('searchInput').value.toLowerCase().trim();
+            const selectedMonth = document.getElementById('selectedMonth').value;
+            const [year, month] = selectedMonth.split('-').map(Number);
+            const totalDays = new Date(year, month, 0).getDate();
+
+            const filteredStudents = students.filter(s => 
+                s.studentName.toLowerCase().includes(searchKeyword) || 
+                s.parentName.toLowerCase().includes(searchKeyword) ||
+                (s.phone && s.phone.toLowerCase().includes(searchKeyword)) ||
+                (s.school && s.school.toLowerCase().includes(searchKeyword)) ||
+                (s.className && s.className.toLowerCase().includes(searchKeyword))
+            );
+
+            tbody.innerHTML = '';
+            if (filteredStudents.length === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                filteredStudents.forEach((student, index) => {
+                    let totalLessons = 0;
+                    for (let d = 1; d <= totalDays; d++) {
+                        const dayKey = `d${d}`;
+                        if (student.attendance && student.attendance[`${selectedMonth}-${dayKey}-sang`]) totalLessons++;
+                        if (student.attendance && student.attendance[`${selectedMonth}-${dayKey}-chieu`]) totalLessons++;
+                        if (student.attendance && student.attendance[`${selectedMonth}-${dayKey}-toi`]) totalLessons++;
+                    }
+
+                    const feePerMonth = student.feePerMonth !== undefined ? Number(student.feePerMonth) : defaultMonthlyFee;
+
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-amber-50/40 transition-colors';
+                    
+                    let htmlContent = `
+                        <td class="py-4 px-3 text-center text-slate-500 font-medium">${index + 1}</td>
+                        <td class="py-4 px-3 font-bold text-slate-900">${escapeHtml(student.studentName)}</td>
+                        <td class="py-4 px-3 text-slate-700">${escapeHtml(student.parentName)}</td>
+                        <td class="py-4 px-3 text-slate-600 font-mono text-xs">${escapeHtml(student.phone || '-')}</td>
+                        <td class="py-4 px-3 text-slate-600">
+                            <div class="text-xs font-semibold">${escapeHtml(student.school || '-')}</div>
+                            <div class="text-xs text-indigo-900 font-bold">${escapeHtml(student.className || '-')}</div>
+                        </td>
+                        <td class="py-4 px-3 text-center">
+                            <button type="button" class="px-4 py-2 bg-amber-100 hover:bg-amber-200 text-slate-900 font-bold rounded-xl text-xs transition-all shadow-sm inline-flex items-center justify-center gap-1.5 mx-auto cursor-pointer" data-id="${student.id}" onclick="openAttendanceModal(this.getAttribute('data-id'))">
+                                <i class="fa-solid fa-calendar-check text-amber-600"></i> Điểm danh
+                            </button>
+                        </td>
+                        <td class="py-4 px-3 text-center font-bold text-amber-700">${totalLessons} ca</td>
+                        <td class="py-4 px-3">
+                            <div class="flex items-center justify-between gap-1">
+                                <div class="text-xs font-extrabold text-amber-600">${formatCurrency(feePerMonth)}</div>
+                                ${isAdmin ? `<button type="button" onclick="openGlobalFeeModal('${student.id}')" class="w-6 h-6 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded flex items-center justify-center text-[10px] cursor-pointer" title="Đổi học phí"><i class="fa-solid fa-pen"></i></button>` : ''}
+                            </div>
+                        </td>
+                    `;
+
+                    if (isAdmin) {
+                        htmlContent += `
+                        <td class="py-4 px-3 text-center">
+                            <div class="flex items-center justify-center gap-1.5">
+                                <button type="button" onclick="editStudent('${student.id}')" class="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 hover:bg-amber-100 hover:text-slate-900 transition-colors flex items-center justify-center cursor-pointer" title="Sửa"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button type="button" onclick="deleteStudent('${student.id}')" class="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 hover:bg-rose-100 hover:text-rose-600 transition-colors flex items-center justify-center cursor-pointer" title="Xóa"><i class="fa-solid fa-trash-can"></i></button>
+                            </div>
+                        </td>`;
+                    }
+
+                    tr.innerHTML = htmlContent;
+                    tbody.appendChild(tr);
+                });
+            }
+            document.getElementById('statTotalStudents').innerText = students.length;
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+        }
+
+        function openAttendanceModal(studentId) {
+            currentOpenStudentId = studentId;
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+
+            const selectedMonth = document.getElementById('selectedMonth').value;
+            const [year, month] = selectedMonth.split('-');
+            const totalDays = new Date(year, month, 0).getDate();
+
+            document.getElementById('modalStudentInfo').innerHTML = `Học sinh: <span class="text-white font-bold">${escapeHtml(student.studentName)}</span> - Lớp: <span class="text-amber-300">${escapeHtml(student.className || '-')}</span>`;
+
+            let daysHtml = '';
+            for (let d = 1; d <= totalDays; d++) {
+                const dayKey = `d${d}`;
+                const kSang = `${selectedMonth}-${dayKey}-sang`;
+                const kChieu = `${selectedMonth}-${dayKey}-chieu`;
+                const kToi = `${selectedMonth}-${dayKey}-toi`;
+
+                const cSang = student.attendance && student.attendance[kSang];
+                const cChieu = student.attendance && student.attendance[kChieu];
+                const cToi = student.attendance && student.attendance[kToi];
+
+                const bgS = cSang ? 'bg-emerald-500 text-white' : 'bg-amber-200 text-amber-900 hover:bg-amber-300';
+                const bgC = cChieu ? 'bg-emerald-500 text-white' : 'bg-orange-300 text-orange-900 hover:bg-orange-400';
+                const bgT = cToi ? 'bg-emerald-500 text-white' : 'bg-indigo-300 text-indigo-900 hover:bg-indigo-400';
+
+                daysHtml += `
+                    <div class="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-2.5 flex items-center justify-between gap-3 shadow-2xs">
+                        <span class="text-xs font-bold text-slate-800 w-16">Ngày ${d}/${month}</span>
+                        
+                        <div class="flex items-center rounded-xl overflow-hidden border border-amber-300 shadow-sm">
+                            <div onclick="toggleSession('${student.id}', '${kSang}', this)" title="Ca Sáng" class="w-10 h-9 flex items-center justify-center cursor-pointer text-xs font-bold transition-all border-r border-amber-300/60 ${bgS}">
+                                <i class="fa-solid fa-sun pointer-events-none"></i>
+                            </div>
+                            <div onclick="toggleSession('${student.id}', '${kChieu}', this)" title="Ca Chiều" class="w-10 h-9 flex items-center justify-center cursor-pointer text-xs font-bold transition-all border-r border-amber-300/60 ${bgC}">
+                                <i class="fa-solid fa-cloud-sun pointer-events-none"></i>
+                            </div>
+                            <div onclick="toggleSession('${student.id}', '${kToi}', this)" title="Ca Tối" class="w-10 h-9 flex items-center justify-center cursor-pointer text-xs font-bold transition-all ${bgT}">
+                                <i class="fa-solid fa-moon pointer-events-none"></i>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('attendanceDaysContainer').innerHTML = daysHtml;
+            document.getElementById('attendanceModal').classList.remove('hidden');
+        }
+
+        function closeAttendanceModal() {
+            currentOpenStudentId = null;
+            document.getElementById('attendanceModal').classList.add('hidden');
+            renderTable();
+        }
+
+        function toggleSession(studentId, key, el) {
+            if (!isAdmin) {
+                alert('Vui lòng đăng nhập Admin để thực hiện điểm danh!');
+                return;
+            }
+            const student = students.find(s => s.id === studentId);
+            if (student) {
+                if (!student.attendance) student.attendance = {};
+                const currentState = !!student.attendance[key];
+                student.attendance[key] = !currentState;
+
+                el.classList.add('animate-pop');
+                setTimeout(() => { el.classList.remove('animate-pop'); }, 350);
+
+                if (student.attendance[key]) {
+                    el.className = "w-10 h-9 flex items-center justify-center cursor-pointer text-xs font-bold transition-all bg-emerald-500 text-white";
+                } else {
+                    if (key.includes('sang')) {
+                        el.className = "w-10 h-9 flex items-center justify-center cursor-pointer text-xs font-bold transition-all border-r border-amber-300/60 bg-amber-200 text-amber-900 hover:bg-amber-300";
+                    } else if (key.includes('chieu')) {
+                        el.className = "w-10 h-9 flex items-center justify-center cursor-pointer text-xs font-bold transition-all border-r border-amber-300/60 bg-orange-300 text-orange-900 hover:bg-orange-400";
+                    } else {
+                        el.className = "w-10 h-9 flex items-center justify-center cursor-pointer text-xs font-bold transition-all bg-indigo-300 text-indigo-900 hover:bg-indigo-400";
+                    }
+                }
+
+                saveData();
+            }
+        }
+
+        function openModal(id = null) {
+            const modal = document.getElementById('studentModal');
+            document.getElementById('studentForm').reset();
+            document.getElementById('studentId').value = '';
+
+            if (id) {
+                if (!isAdmin) return alert('Chỉ Admin mới có quyền sửa!');
+                document.getElementById('modalTitle').innerText = 'Chỉnh sửa thông tin học sinh';
+                const s = students.find(item => item.id === id);
+                if (s) {
+                    document.getElementById('studentId').value = s.id;
+                    document.getElementById('studentName').value = s.studentName;
+                    document.getElementById('parentName').value = s.parentName;
+                    document.getElementById('studentPhone').value = s.phone || '';
+                    document.getElementById('studentSchool').value = s.school || '';
+                    document.getElementById('studentClass').value = s.className || '';
+                    document.getElementById('feePerMonth').value = s.feePerMonth !== undefined ? s.feePerMonth : defaultMonthlyFee;
+                    document.getElementById('studentNote').value = s.note || '';
+                }
+            } else {
+                document.getElementById('modalTitle').innerText = 'Đăng ký thông tin học sinh mới';
+                document.getElementById('feePerMonth').value = defaultMonthlyFee;
+            }
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() { document.getElementById('studentModal').classList.add('hidden'); }
+
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            const id = document.getElementById('studentId').value;
+            const studentName = document.getElementById('studentName').value.trim();
+            const parentName = document.getElementById('parentName').value.trim();
+            const phone = document.getElementById('studentPhone').value.trim();
+            const school = document.getElementById('studentSchool').value.trim();
+            const className = document.getElementById('studentClass').value.trim();
+            const feePerMonth = Number(document.getElementById('feePerMonth').value) || defaultMonthlyFee;
+            const note = document.getElementById('studentNote').value.trim();
+
+            if (id) {
+                const s = students.find(item => item.id === id);
+                if (s) {
+                    s.studentName = studentName; s.parentName = parentName; s.phone = phone;
+                    s.school = school; s.className = className; s.feePerMonth = feePerMonth; s.note = note;
+                }
+            } else {
+                students.push({ id: Date.now().toString(), studentName, parentName, phone, school, className, feePerMonth, note, attendance: {} });
+            }
+
+            saveData();
+            closeModal();
+            renderTable();
+            alert('Đã lưu thông tin học sinh thành công!');
+        }
+
+        function editStudent(id) { if (isAdmin) openModal(id); }
+        function deleteStudent(id) {
+            if (isAdmin && confirm('Bạn có chắc chắn muốn xóa học sinh này không?')) {
+                students = students.filter(s => s.id !== id);
+                saveData();
+                renderTable();
+            }
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        // Chạy khởi động tải dữ liệu Real-time
+        loadData();
+        updateAdminUI();
+    </script>
+</body>
+</html>
